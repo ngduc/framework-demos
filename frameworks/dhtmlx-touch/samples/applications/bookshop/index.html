@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="../../../codebase/touchui.css" type="text/css" media="screen" charset="utf-8">
+		<script src="../../../codebase/touchui.js" type="text/javascript"></script>
+		<script src="js/functions.js" type="text/javascript"></script>
+		<script src="js/types.js" type="text/javascript"></script>
+		<script src="js/config.js" type="text/javascript"></script>
+		<link rel="STYLESHEET" type="text/css" href="css/styles.css">
+
+		<title>Book Shop</title>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<script type="text/javascript" charset="utf-8">
+			var countHandler;
+				
+				
+			
+			dhx.ready(function(){
+			
+				/** 1. Initialization**/
+	
+				dhx.ui.fullScreen();
+				dhx.ui(config); //congif object defined in the config.js
+				
+				
+				/** 2. Data loading and Binding **/
+				
+				var datastore =  new dhx.DataCollection({
+					datatype:"json"
+				}); 
+				dhx.delay(function(){
+					datastore.load("data/books.js");
+				});
+				
+				/*Featured Products*/
+				$$("featuredProdList").sync(datastore,this);
+				$$("featuredProdList").bind(datastore, function(data, obj){
+					return data.featured;
+				});
+				
+				/*show the second item in the center*/
+				$$("featuredProdList").attachEvent("onAfterRender",function(){
+					$$("featuredProdList").scrollTo(70,0);
+				});
+				
+				/*Hot Deals*/
+				$$("storeHotDeals").sync(datastore, true);
+				$$("storeHotDeals").bind(datastore, function(data, obj){
+					return data.oldprice;
+				});
+				
+				/*Genres*/
+				dhx.extend($$("storeGenres").data, dhx.GroupStore);
+				$$("storeGenres").sync(datastore, function(){
+					this.group({
+						by:"#category#",
+						map:{id:["#category#"],genre:["#category#"]}
+					});
+				});
+				
+				$$("storeGenresBooks").sync(datastore, true);
+				$$("storeGenresBooks").bind($$("storeGenres"),function(target,source){
+					return target.category == source.genre
+				});
+				
+				
+				/** 3.Event handling **/
+				
+				/*Genre books - show on genre click*/
+				$$("storeGenres").attachEvent("onItemClick",function(id){
+					this.setCursor(id)
+					$$("viewname").setValue(id);
+					$$("topBar").showBatch("back");
+					$$("storeGenresBooks").show();
+				})
+				
+				/*Specials - show description on click*/
+				$$("storeHotDeals").attachEvent("onItemClick",function(id){
+					showDescription.apply(this,[id,"Hot Deals"])
+            	});
+				/*Featured Products - show description on click*/
+				$$("featuredProdList").attachEvent("onItemClick",function(id){
+					showDescription.apply(this,[id,"Products"])
+            	});
+				/*Genres - show description on click*/
+				$$("storeGenresBooks").attachEvent("onItemClick",function(id){
+					showDescription.apply(this,[id,$$("storeGenres").getCursor(id)])
+            	});
+				
+				
+				/*back to the previous view*/
+				$$("back").attachEvent("onItemClick",function(){
+					var viewId = $$('store').back();
+					if(viewId!="storeGenresBooks")
+						 showToolbarBatch("store");
+				});
+				
+				/*changing the active batch of items in the top toolbar when the new view selected*/
+				$$("bottomTabbar").attachEvent("onAfterTabClick",showToolbarBatch)
+				
+				/*the total price of an order*/
+				$$("cart").data.attachEvent("onStoreUpdated",getTotal);
+				
+				$$("countButton").attachEvent("onItemClick",function(id,e){
+					if(this.getValue()===0){
+						var id = $$('cart').locate(e);
+						if(id){
+							showRemoveConfirm(id);
+							
+						}
+					}
+					getTotal.apply($$('cart').data);
+				})
+				
+				/*activates default tab (without animation)*/
+				$$("storeProducts").show(false);
+			});
+			
+		</script>
+		<script src="/js/main.js" type="text/javascript"></script><!--FrameworkDemos.com-->
+</head>
+<body>
+	<div class="backToRoot"><a href="javascript: window.location='/';"><img src="/img/icons/home.png"></a></div>
+</body>
+</html>
