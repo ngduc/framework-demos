@@ -32,3 +32,5 @@ jquery-mobile-1.1.1
 lungo-1.2
 
 sencha-touch-2.0.1.1
+
+The-M-Project-1.2
